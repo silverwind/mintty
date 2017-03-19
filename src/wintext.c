@@ -185,7 +185,7 @@ get_font_quality(void)
 #ifdef debug_fonts
 #define trace_font(params)	printf params
 #else
-#define trace_font(params)	
+#define trace_font(params)
 #endif
 
 static HFONT
@@ -1056,7 +1056,7 @@ trace_line(char * tag, wchar * text, int len)
 }
 
 #ifndef debug_win_text
-#define trace_line(tag, text, len)	
+#define trace_line(tag, text, len)
 #endif
 
 static wchar
@@ -1204,7 +1204,6 @@ win_text(int x, int y, wchar *text, int len, cattr attr, cattr *textattr, int la
   colour_i fgi = (attr.attr & ATTR_FGMASK) >> ATTR_FGSHIFT;
   colour_i bgi = (attr.attr & ATTR_BGMASK) >> ATTR_BGSHIFT;
 
-  bool apply_shadow = true;
   if (term.rvideo) {
     if (fgi >= 256)
       fgi ^= 2;     // (BOLD_)?FG_COLOUR_I <-> (BOLD_)?BG_COLOUR_I
@@ -1213,23 +1212,9 @@ win_text(int x, int y, wchar *text, int len, cattr attr, cattr *textattr, int la
   }
   if (attr.attr & ATTR_BOLD && cfg.bold_as_colour) {
     if (fgi < 8) {
-      if (!cfg.bold_as_font)
-        apply_shadow = false;
-#ifdef debug_bold
-      printf("fgi < 8 (%d %d): apply_shadow %d\n", (int)colours[fgi], (int)colours[fgi | 8], apply_shadow);
-#endif
-#ifdef enforce_bold
-      if (colours[fgi] == colours[fgi | 8])
-        apply_shadow = true;
-#endif
       fgi |= 8;     // (BLACK|...|WHITE)_I -> BOLD_(BLACK|...|WHITE)_I
     }
     else if (fgi >= 256 && fgi != TRUE_COLOUR && !cfg.bold_as_font) {
-      apply_shadow = false;
-#ifdef enforce_bold
-      if (colours[fgi] == colours[fgi | 1])
-        apply_shadow = true;
-#endif
       fgi |= 1;     // (FG|BG)_COLOUR_I -> BOLD_(FG|BG)_COLOUR_I
     }
   }
@@ -1448,15 +1433,7 @@ win_text(int x, int y, wchar *text, int len, cattr attr, cattr *textattr, int la
     xt = x;
   }
 
- /* Determine shadow/overstrike bold or double-width/height width */
   int xwidth = 1;
-  if (apply_shadow && bold_mode == BOLD_SHADOW && (attr.attr & ATTR_BOLD)) {
-    // This could be scaled with font size, but at risk of clipping
-    xwidth = 2;
-    if (lattr != LATTR_NORM) {
-      xwidth = 3; // 4?
-    }
-  }
 
  /* Finally, draw the text */
   SetBkMode(dc, OPAQUE);
@@ -1466,10 +1443,10 @@ win_text(int x, int y, wchar *text, int len, cattr attr, cattr *textattr, int la
     overwropt = 0;
   }
   trace_line(" TextOut:", text, len);
-  // The combining characters separate rendering trick *alone* 
-  // makes some combining characters better (~#553, #295), 
-  // others worse (#565); however, together with the 
-  // substitute combining characters trick it seems to be the best 
+  // The combining characters separate rendering trick *alone*
+  // makes some combining characters better (~#553, #295),
+  // others worse (#565); however, together with the
+  // substitute combining characters trick it seems to be the best
   // workaround for combining characters rendering issues.
   // Yet disabling it for some (heuristically determined) cases:
   if (let_windows_combine)
@@ -1482,7 +1459,7 @@ win_text(int x, int y, wchar *text, int len, cattr attr, cattr *textattr, int la
   for (int xoff = 0; xoff < xwidth; xoff++)
     if (combining || combining_double) {
       // Workaround for mangled display of combining characters;
-      // Arabic shaping should not be affected as the transformed 
+      // Arabic shaping should not be affected as the transformed
       // presentation forms are not combining characters anymore at this point.
       // Repeat the workaround for bold/wide below.
 
@@ -1778,8 +1755,8 @@ win_check_glyphs(wchar *wcs, uint num)
 
 /* This function gets the actual width of a character in the normal font.
    Usage:
-   * determine whether to trim an ambiguous wide character 
-     (of a CJK ambiguous-wide font such as BatangChe) to normal width 
+   * determine whether to trim an ambiguous wide character
+     (of a CJK ambiguous-wide font such as BatangChe) to normal width
      if desired.
    * also whether to expand a normal width character if expected wide
  */
@@ -1820,9 +1797,9 @@ win_char_width(xchar c)
     BOOL ok3 = GetCharABCWidthsW(dc, c, c, &abc);  // only on TrueType
     ABCFLOAT abcf; memset(&abcf, 0, sizeof abcf);
     BOOL ok4 = GetCharABCWidthsFloatW(dc, c, c, &abcf);
-    printf("w %04X [%d] (32 %d) %d (32a %d) %d (flt %d) %.3f (abc %d) %2d %2d %2d (abcf %d) %4.1f %4.1f %4.1f\n", 
-           c, cell_width, ok1, cw, ok2, cwf, 
-           ok3, abc.abcA, abc.abcB, abc.abcC, 
+    printf("w %04X [%d] (32 %d) %d (32a %d) %d (flt %d) %.3f (abc %d) %2d %2d %2d (abcf %d) %4.1f %4.1f %4.1f\n",
+           c, cell_width, ok1, cw, ok2, cwf,
+           ok3, abc.abcA, abc.abcB, abc.abcC,
            ok4, abcf.abcfA, abcf.abcfB, abcf.abcfC);
   }
 #endif
@@ -1896,7 +1873,7 @@ win_set_colour(colour_i i, colour c)
 #endif
   switch (i) {
     when FG_COLOUR_I:
-      // should we make this conditional, 
+      // should we make this conditional,
       // unless bold colour has been set explicitly?
       if (!bold_colour_selected) {
         if (cfg.bold_colour != (colour)-1)
