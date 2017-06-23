@@ -131,7 +131,7 @@ fontpropinfo()
   char * fontinfo_manual = "manual";
   int taglen = max(strlen(fontinfo_font), strlen(fontinfo_manual));
   char * fontinfo = newn(char, strlen(fontinfopat) + 23 + 2 * taglen);
-  sprintf(fontinfo, fontinfopat, fontfamilies->row_spacing, 
+  sprintf(fontinfo, fontinfopat, fontfamilies->row_spacing,
           fontfamilies->bold_mode ? fontinfo_font : fontinfo_manual,
           fontfamilies->und_mode ? fontinfo_font : fontinfo_manual);
   return fontinfo;
@@ -220,7 +220,7 @@ get_font_quality(void)
 #ifdef debug_fonts
 #define trace_font(params)	printf params
 #else
-#define trace_font(params)	
+#define trace_font(params)
 #endif
 
 static HFONT
@@ -418,9 +418,9 @@ adjust_font_weights(struct fontfam * ff)
 
    We also:
    - check the font width and height, correcting our guesses if necessary.
-   - verify that the bold font is the same width as the ordinary one, 
+   - verify that the bold font is the same width as the ordinary one,
      and engage shadow bolding if not.
-   - verify that the underlined font is the same width as the ordinary one, 
+   - verify that the underlined font is the same width as the ordinary one,
      and engage manual underlining if not.
  */
 static void
@@ -497,7 +497,7 @@ win_init_fontfamily(HDC dc, int findex)
     ff->row_spacing += cfg.row_spacing;
     if (ff->row_spacing < -tm.tmDescent)
       ff->row_spacing = -tm.tmDescent;
-    trace_font(("row spacing int %ld ext %ld -> %+d; add %+d -> %+d; desc %ld -> %+d %ls\n", 
+    trace_font(("row spacing int %ld ext %ld -> %+d; add %+d -> %+d; desc %ld -> %+d %ls\n",
         (long int)tm.tmInternalLeading, (long int)tm.tmExternalLeading, row_padding(tm.tmInternalLeading, tm.tmExternalLeading),
         cfg.row_spacing, row_padding(tm.tmInternalLeading, tm.tmExternalLeading) + cfg.row_spacing,
         (long int)tm.tmDescent, ff->row_spacing, ff->name));
@@ -1119,7 +1119,7 @@ trace_line(char * tag, wchar * text, int len)
 }
 
 #ifndef debug_win_text
-#define trace_line(tag, text, len)	
+#define trace_line(tag, text, len)
 #endif
 
 static wchar
@@ -1283,7 +1283,7 @@ win_text(int x, int y, wchar *text, int len, cattr attr, cattr *textattr, ushort
   colour_i fgi = (attr.attr & ATTR_FGMASK) >> ATTR_FGSHIFT;
   colour_i bgi = (attr.attr & ATTR_BGMASK) >> ATTR_BGSHIFT;
 
-  bool apply_shadow = true;
+  bool apply_shadow = false;
   if (term.rvideo) {
     if (fgi >= 256)
       fgi ^= 2;     // (BOLD_)?FG_COLOUR_I <-> (BOLD_)?BG_COLOUR_I
@@ -1297,18 +1297,10 @@ win_text(int x, int y, wchar *text, int len, cattr attr, cattr *textattr, ushort
 #ifdef debug_bold
       printf("fgi < 8 (%d %d): apply_shadow %d\n", (int)colours[fgi], (int)colours[fgi | 8], apply_shadow);
 #endif
-#ifdef enforce_bold
-      if (colours[fgi] == colours[fgi | 8])
-        apply_shadow = true;
-#endif
       fgi |= 8;     // (BLACK|...|WHITE)_I -> BOLD_(BLACK|...|WHITE)_I
     }
     else if (fgi >= 256 && fgi != TRUE_COLOUR && !cfg.bold_as_font) {
       apply_shadow = false;
-#ifdef enforce_bold
-      if (colours[fgi] == colours[fgi | 1])
-        apply_shadow = true;
-#endif
       fgi |= 1;     // (FG|BG)_COLOUR_I -> BOLD_(FG|BG)_COLOUR_I
     }
   }
@@ -1496,11 +1488,11 @@ win_text(int x, int y, wchar *text, int len, cattr attr, cattr *textattr, ushort
     if (!use_uniscribe)
       return;
 
-    HRESULT hr = ScriptStringAnalyse(hdc, psz, cch, 0, -1, 
+    HRESULT hr = ScriptStringAnalyse(hdc, psz, cch, 0, -1,
       // could | SSA_FIT and use `width` (from win_text) instead of MAXLONG
       // to justify to monospace cell widths;
       // SSA_LINK is needed for Hangul and default-size CJK
-      SSA_GLYPHS | SSA_FALLBACK | SSA_LINK, MAXLONG, 
+      SSA_GLYPHS | SSA_FALLBACK | SSA_LINK, MAXLONG,
       NULL, NULL, dxs, NULL, NULL, &ssa);
     if (!SUCCEEDED(hr) && hr != USP_E_SCRIPT_NOT_IN_FONT)
       use_uniscribe = false;
@@ -1560,10 +1552,10 @@ win_text(int x, int y, wchar *text, int len, cattr attr, cattr *textattr, ushort
     overwropt = 0;
   }
   trace_line(" TextOut:", text, len);
-  // The combining characters separate rendering trick *alone* 
-  // makes some combining characters better (~#553, #295), 
-  // others worse (#565); however, together with the 
-  // substitute combining characters trick it seems to be the best 
+  // The combining characters separate rendering trick *alone*
+  // makes some combining characters better (~#553, #295),
+  // others worse (#565); however, together with the
+  // substitute combining characters trick it seems to be the best
   // workaround for combining characters rendering issues.
   // Yet disabling it for some (heuristically determined) cases:
   if (let_windows_combine)
@@ -1576,7 +1568,7 @@ win_text(int x, int y, wchar *text, int len, cattr attr, cattr *textattr, ushort
   for (int xoff = 0; xoff < xwidth; xoff++)
     if (combining || combining_double) {
       // Workaround for mangled display of combining characters;
-      // Arabic shaping should not be affected as the transformed 
+      // Arabic shaping should not be affected as the transformed
       // presentation forms are not combining characters anymore at this point.
       // Repeat the workaround for bold/wide below.
 
@@ -1595,7 +1587,7 @@ win_text(int x, int y, wchar *text, int len, cattr attr, cattr *textattr, ushort
       // combining characters
       textattr[0] = attr;
       for (int i = ulen; i < len; i += ulen) {
-        // separate stacking of combining characters 
+        // separate stacking of combining characters
         // does not work with Uniscribe
         use_uniscribe = false;
 
@@ -1877,8 +1869,8 @@ win_check_glyphs(wchar *wcs, uint num)
 
 /* This function gets the actual width of a character in the normal font.
    Usage:
-   * determine whether to trim an ambiguous wide character 
-     (of a CJK ambiguous-wide font such as BatangChe) to normal width 
+   * determine whether to trim an ambiguous wide character
+     (of a CJK ambiguous-wide font such as BatangChe) to normal width
      if desired.
    * also whether to expand a normal width character if expected wide
  */
@@ -1895,7 +1887,7 @@ win_char_width(xchar c)
   * then this function is a no-op.
   */
   if (!ff->font_dualwidth)
-    // this optimization ignores font fallback and should be dropped 
+    // this optimization ignores font fallback and should be dropped
     // if ever a more particular width checking is implemented (#615)
     return 1;
 #endif
@@ -1926,9 +1918,9 @@ win_char_width(xchar c)
     BOOL ok3 = GetCharABCWidthsW(dc, c, c, &abc);  // only on TrueType
     ABCFLOAT abcf; memset(&abcf, 0, sizeof abcf);
     BOOL ok4 = GetCharABCWidthsFloatW(dc, c, c, &abcf);
-    printf("w %04X [cell %d] - 32 %d %d - flt %d %.3f - abc %d %d %d %d - abc flt %d %4.1f %4.1f %4.1f\n", 
-           c, cell_width, ok1, cw, ok2, cwf, 
-           ok3, abc.abcA, abc.abcB, abc.abcC, 
+    printf("w %04X [cell %d] - 32 %d %d - flt %d %.3f - abc %d %d %d %d - abc flt %d %4.1f %4.1f %4.1f\n",
+           c, cell_width, ok1, cw, ok2, cwf,
+           ok3, abc.abcA, abc.abcB, abc.abcC,
            ok4, abcf.abcfA, abcf.abcfB, abcf.abcfC);
   }
 #endif
@@ -2063,7 +2055,7 @@ static bool bold_colour_selected = false;
 #endif
   switch (i) {
     when FG_COLOUR_I:
-      // should we make this conditional, 
+      // should we make this conditional,
       // unless bold colour has been set explicitly?
       if (!bold_colour_selected) {
         if (cfg.bold_colour != (colour)-1)
